@@ -126,3 +126,4 @@ def example():
 if __name__ == "__main__":
     names = [x for x in argv[1:] if "tempZipClassifier" not in x]
     print(name_tree(make_tree(names),names))
+    call(["rm","tempZipClassifier*"])
