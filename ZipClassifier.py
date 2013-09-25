@@ -13,6 +13,8 @@ from os.path import getsize
 from sys import argv
 
 ############## Compression related stuff
+memory = {}
+
 def zipsize(string):
     open("tempZipClassifier",'wb').write(string)
     call(["gzip","tempZipClassifier", "--best", "-f"])
@@ -20,8 +22,14 @@ def zipsize(string):
     return answer
 
 def normalized_compression_distance(x,y):
+    if (x,y) in memory:
+        return memory[(x,y)]
+    if (y,x) in memory:
+        return memory[(y,x)]
     Cx, Cy = zipsize(x), zipsize(y)
-    return (zipsize(x+y)-min(Cx,Cy))/max(Cx,Cy)
+    answer = (zipsize(x+y)-min(Cx,Cy))/max(Cx,Cy)
+    memory[(x,y)] = answer
+    return answer
 
 def similarity(file_name_1,file_name_2):
     str1 = open(file_name_1,"rb").read()
