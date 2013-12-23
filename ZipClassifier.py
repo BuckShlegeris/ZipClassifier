@@ -8,16 +8,20 @@
 
 # Usage: ./ZipClassifier.py [list of files to compare]
 
+from __future__ import division
+
 from subprocess import call
 from os.path import getsize
 from sys import argv
+
+
 
 ############## Compression related stuff
 memory = {}
 
 def zipsize(string):
     open("tempZipClassifier",'wb').write(string)
-    call(["gzip","tempZipClassifier", "--best", "-f"])
+    call(["gzip","tempZipClassifier", "-9", "-f"])
     answer = getsize("tempZipClassifier.gz")
     return answer
 
@@ -32,9 +36,11 @@ def normalized_compression_distance(x,y):
     return answer
 
 def similarity(file_name_1,file_name_2):
+    print("testing similarity of %s, %s..."%(file_name_1,file_name_2))
     str1 = open(file_name_1,"rb").read()
     str2 = open(file_name_2,"rb").read()
-    return normalized_compression_distance(str1,str2)
+    ncd = normalized_compression_distance(str1,str2)
+    return ncd
 
 ################ Tree related stuff
 
@@ -50,10 +56,10 @@ def make_equivalent(inlist,x,y):
             newList = newList.union(a)
         if y in a:
             newList = newList.union(a)
-    out = [eqClass for eqClass in inlist if x not in eqClass 
+    out = [eqClass for eqClass in inlist if x not in eqClass
                                         and y not in eqClass]+[newList]
     return out
-    
+
 
 def get_pairs(similarity_matrix):
     partition = list({x} for x in range(len(similarity_matrix)))
@@ -69,7 +75,7 @@ def get_pairs(similarity_matrix):
         posx,posy = minPlace
         newPart = make_equivalent(partition,posx,posy)
         return (minPlace, newPart)
-       
+
     outlist = []
 
     while True:
@@ -80,7 +86,7 @@ def get_pairs(similarity_matrix):
             return outlist
 
 ##### I wrote this bit in Haskell and translated it over, so the camelCase is
-#  acceptable :)    
+#  acceptable :)
 def inTree(x,tree):
     if tree[0]=="Leaf":
         return x==tree[1]
@@ -88,7 +94,7 @@ def inTree(x,tree):
         return inTree(x,tree[1]) or inTree(x,tree[2])
 
 def mergeBranches(pair,forest):
-    a,b = pair    
+    a,b = pair
     for tree in forest:
         if inTree(a,tree):
             aTree = tree
@@ -122,14 +128,6 @@ def make_tree(inlist):
     similarity_matrix = [[similarity(x,y) for x in inlist] for y in inlist]
     #print(similarity_matrix)
     return treeify(similarity_matrix)
-
-def example():
-    animals = ["blueWhale","chimpanzee","graySeal","horse","mouse", 
-                   "cat","finWhale","harborSeal","human","rat"]
-
-    print(name_tree(
-        make_tree(["examples/10-mammals/"+x+".txt" for x in animals]),animals))
-
 
 if __name__ == "__main__":
     names = [x for x in argv[1:] if "tempZipClassifier" not in x]
